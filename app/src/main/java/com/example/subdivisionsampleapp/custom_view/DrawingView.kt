@@ -26,8 +26,10 @@ class DrawingView @JvmOverloads constructor(
     private var finalizedPoints = false
     private var subdivisionIsStarted = false
 
-    private var PRIMARY_WEIGHT: Float = 4f/6f
-    private var SECOND_WEIGHT: Float = -(1f/6f)
+    /*private var PRIMARY_WEIGHT: Float = 4f/6f
+    private var SECOND_WEIGHT: Float = -(1f/6f)*/
+    private var PRIMARY_WEIGHT: Float = 23f/40f
+    private var SECOND_WEIGHT: Float = -(3f/40f)
 
     init {
         paint.apply {

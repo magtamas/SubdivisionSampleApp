@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.View
 import com.bosphere.verticalslider.VerticalSlider
+import com.example.subdivisionsampleapp.R
 import com.example.subdivisionsampleapp.custom_view.DrawingView
 import com.example.subdivisionsampleapp.databinding.ActivityMainBinding
 import com.example.subdivisionsampleapp.model.CanvasPoint
@@ -28,13 +29,20 @@ class MainActivity : AppCompatActivity() {
         binding.weightSlider.setProgress(
             binding.canvasContainer.getPrimaryWeight()
         )
+        setWeightLabel(binding.canvasContainer.getPrimaryWeight())
+    }
+
+    private fun setWeightLabel(weight: Float) {
+        binding.weightLabel.text =
+            this.resources.getString(
+                R.string.weight,
+                weight.round(3)
+            )
     }
 
     private fun getSliderChangeListener(): VerticalSlider.OnProgressChangeListener {
         return VerticalSlider.OnProgressChangeListener { progress ->
-            /*if((progress % 0.1f).round(2) == 0f) {
-                binding.canvasContainer.changeWeights(progress)
-            }*/
+            setWeightLabel(progress)
             binding.canvasContainer.changeWeights(progress)
         }
     }
