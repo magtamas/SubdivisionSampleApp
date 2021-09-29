@@ -2,19 +2,15 @@ package com.example.subdivisionsampleapp.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import com.bosphere.verticalslider.VerticalSlider
 import com.example.subdivisionsampleapp.R
-import com.example.subdivisionsampleapp.custom_view.DrawingView
 import com.example.subdivisionsampleapp.databinding.ActivityMainBinding
-import com.example.subdivisionsampleapp.model.CanvasPoint
+import com.example.subdivisionsampleapp.utils.round
 import kotlin.math.round
 
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
-
-    private var pointList: MutableList<CanvasPoint> = mutableListOf()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -71,10 +67,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-}
-
-fun Float.round(decimals: Int): Float {
-    var multiplier = 1.0f
-    repeat(decimals) { multiplier *= 10 }
-    return round(this * multiplier) / multiplier
 }
