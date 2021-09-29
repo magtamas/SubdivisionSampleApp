@@ -192,11 +192,6 @@ class DrawingView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         for((index, point) in pointList.withIndex()) {
-            /*drawCircle(
-                canvas = canvas,
-                xPosition = point.xPosition,
-                yPosition = point.yPosition
-            )*/
             if(index != 0) {
                 drawLine(
                     canvas = canvas,
@@ -213,6 +208,13 @@ class DrawingView @JvmOverloads constructor(
                     startY = pointList.first().yPosition,
                     toX = pointList.last().xPosition,
                     toY = pointList.last().yPosition,
+                )
+            }
+            if(!finalizedPoints) {
+                drawCircle(
+                    canvas = canvas,
+                    xPosition = point.xPosition,
+                    yPosition = point.yPosition
                 )
             }
         }
