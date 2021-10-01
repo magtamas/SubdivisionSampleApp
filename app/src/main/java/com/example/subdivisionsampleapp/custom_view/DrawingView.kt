@@ -1,17 +1,24 @@
 package com.example.subdivisionsampleapp.custom_view
 
+import android.animation.ObjectAnimator
+import android.animation.ValueAnimator
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.graphics.Path
 import android.util.AttributeSet
 import android.util.Log
-import android.view.View
-import androidx.core.content.ContextCompat
 import android.view.MotionEvent
+import android.view.View
+import android.view.animation.AnticipateInterpolator
+import android.view.animation.OvershootInterpolator
+import androidx.core.animation.doOnEnd
+import androidx.core.content.ContextCompat
 import com.example.subdivisionsampleapp.R
 import com.example.subdivisionsampleapp.model.CanvasPoint
-import android.view.ScaleGestureDetector
-import java.lang.Thread.sleep
+import kotlin.reflect.KProperty
+
 
 class DrawingView @JvmOverloads constructor(
     context: Context,
@@ -20,6 +27,7 @@ class DrawingView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     val paint: Paint = Paint()
+    val path = Path()
     private var pointList = mutableListOf<CanvasPoint>()
     private var currentSubdivisionPointList = mutableListOf<CanvasPoint>()
     private var originalPointList = mutableListOf<CanvasPoint>()
@@ -40,7 +48,7 @@ class DrawingView @JvmOverloads constructor(
     fun finishPointAddition() {
         finalizedPoints = true
         originalPointList = pointList.toMutableList()
-        requestLayout()
+        startLineDrawing()
     }
 
     fun restartPointAddition() {
@@ -188,10 +196,63 @@ class DrawingView @JvmOverloads constructor(
 
         return (newX to newY)
     }
+    
+    private var xPathPosition: Float = 0f
+        set(value) {
+            field = value
+        }
+
+    private var yPathPosition: Float = 0f
+        set(value) {
+            field = value
+            path.lineTo(xPathPosition, yPathPosition)
+            invalidate()
+        }
+
+    private fun startLineDrawing() {
+        if(finalizedPoints) {
+            val path = Path()
+            path.moveTo(
+                pointList.last().xPosition,
+                pointList.last().yPosition
+            )
+            path.lineTo(
+                pointList.first().xPosition,
+                pointList.first().yPosition
+            )
+            startPathAnim(path)
+        } else {
+            pointList.findLast { !it.isAlreadyAnimated }?.let { currentPoint ->
+                val currentIndex = pointList.indexOf(currentPoint)
+                if(currentIndex == 0) {
+                    this.path.moveTo(pointList[0].xPosition, pointList[0].yPosition)
+                    return
+                }
+                val path = Path()
+                path.moveTo(pointList[currentIndex - 1].xPosition, pointList[currentIndex - 1].yPosition)
+                path.lineTo(currentPoint.xPosition, currentPoint.yPosition)
+                currentPoint.isAlreadyAnimated = true
+                startPathAnim(path)
+            }
+        }
+    }
+
+    private fun startPathAnim(path: Path) {
+        ObjectAnimator.ofFloat(this, ::xPathPosition.name, ::yPathPosition.name, path).apply {
+            duration = 300
+            start()
+        }
+    }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        for((index, point) in pointList.withIndex()) {
+        canvas?.drawPath(path, paint.apply {
+            strokeWidth = 5f
+            isAntiAlias = true
+            color = ContextCompat.getColor(context, R.color.colorBlue)
+            style = Paint.Style.STROKE
+        })
+        /*for((index, point) in pointList.withIndex()) {
             if(index != 0) {
                 drawLine(
                     canvas = canvas,
@@ -217,7 +278,7 @@ class DrawingView @JvmOverloads constructor(
                     yPosition = point.yPosition
                 )
             }
-        }
+        }*/
     }
 
     private fun drawCircle(
@@ -260,13 +321,15 @@ class DrawingView @JvmOverloads constructor(
         val y = event.y
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                pointList.add(
-                    CanvasPoint(
-                        xPosition = x,
-                        yPosition = y
+                if(!finalizedPoints) {
+                    pointList.add(
+                        CanvasPoint(
+                            xPosition = x,
+                            yPosition = y
+                        )
                     )
-                )
-                invalidate()
+                    startLineDrawing()
+                }
             }
         }
         return true
