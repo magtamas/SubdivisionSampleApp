@@ -33,17 +33,12 @@ class DrawingView @JvmOverloads constructor(
     private var originalPointList = mutableListOf<CanvasPoint>()
     private var finalizedPoints = false
     private var subdivisionIsStarted = false
+    private var subdivisionIsDone = false
 
     /*private var PRIMARY_WEIGHT: Float = 4f/6f
     private var SECOND_WEIGHT: Float = -(1f/6f)*/
     private var PRIMARY_WEIGHT: Float = 23f/40f
     private var SECOND_WEIGHT: Float = -(3f/40f)
-
-    init {
-        paint.apply {
-            style = Paint.Style.FILL
-        }
-    }
 
     fun finishPointAddition() {
         finalizedPoints = true
@@ -173,7 +168,7 @@ class DrawingView @JvmOverloads constructor(
         }
         currentSubdivisionPointList = pointList.toMutableList()
         pointList = newPointList.toMutableList()
-        requestLayout()
+        startSubdivisionDrawing()
     }
 
     private fun calculateCoordinates(
@@ -196,7 +191,7 @@ class DrawingView @JvmOverloads constructor(
 
         return (newX to newY)
     }
-    
+
     private var xPathPosition: Float = 0f
         set(value) {
             field = value
@@ -209,6 +204,29 @@ class DrawingView @JvmOverloads constructor(
             invalidate()
         }
 
+    val animPath = Path()
+    private fun startSubdivisionDrawing() {
+        animPath.reset()
+        while(pointList.any { !it.isAlreadyAnimated }) {
+            pointList.find { !it.isAlreadyAnimated }?.let { currentPoint ->
+                val currentIndex = pointList.indexOf(currentPoint)
+                if(currentIndex % 2 != 0) {
+                    animPath.moveTo(pointList[currentIndex - 1].xPosition, pointList[currentIndex - 1].yPosition)
+                }
+                animPath.lineTo(currentPoint.xPosition, currentPoint.yPosition)
+                if(currentIndex + 1 < pointList.size) {
+                    animPath.lineTo(pointList[currentIndex + 1].xPosition, pointList[currentIndex + 1].yPosition)
+                } else {
+                    animPath.lineTo(pointList.first().xPosition, pointList.first().yPosition)
+                }
+                currentPoint.isAlreadyAnimated = true
+            }
+        }
+        path.reset()
+        this.path.moveTo(pointList[0].xPosition, pointList[0].yPosition)
+        startPathAnim(animPath)
+    }
+
     private fun startLineDrawing() {
         if(finalizedPoints) {
             val path = Path()
@@ -220,6 +238,8 @@ class DrawingView @JvmOverloads constructor(
                 pointList.first().xPosition,
                 pointList.first().yPosition
             )
+            pointList.first().isAlreadyAnimated = true
+            pointList.last().isAlreadyAnimated = true
             startPathAnim(path)
         } else {
             pointList.findLast { !it.isAlreadyAnimated }?.let { currentPoint ->
@@ -239,7 +259,7 @@ class DrawingView @JvmOverloads constructor(
 
     private fun startPathAnim(path: Path) {
         ObjectAnimator.ofFloat(this, ::xPathPosition.name, ::yPathPosition.name, path).apply {
-            duration = 300
+            duration = 1000
             start()
         }
     }
@@ -252,25 +272,7 @@ class DrawingView @JvmOverloads constructor(
             color = ContextCompat.getColor(context, R.color.colorBlue)
             style = Paint.Style.STROKE
         })
-        /*for((index, point) in pointList.withIndex()) {
-            if(index != 0) {
-                drawLine(
-                    canvas = canvas,
-                    startX = pointList[index - 1].xPosition,
-                    startY = pointList[index - 1].yPosition,
-                    toX = point.xPosition,
-                    toY = point.yPosition,
-                )
-            }
-            if(index == pointList.lastIndex && finalizedPoints) {
-                drawLine(
-                    canvas = canvas,
-                    startX = pointList.first().xPosition,
-                    startY = pointList.first().yPosition,
-                    toX = pointList.last().xPosition,
-                    toY = pointList.last().yPosition,
-                )
-            }
+        for(point in pointList) {
             if(!finalizedPoints) {
                 drawCircle(
                     canvas = canvas,
@@ -278,7 +280,7 @@ class DrawingView @JvmOverloads constructor(
                     yPosition = point.yPosition
                 )
             }
-        }*/
+        }
     }
 
     private fun drawCircle(
@@ -292,6 +294,7 @@ class DrawingView @JvmOverloads constructor(
             10f,
             paint.apply {
                 color = ContextCompat.getColor(context, R.color.colorRed)
+                style = Paint.Style.FILL
             }
         )
     }
@@ -330,6 +333,7 @@ class DrawingView @JvmOverloads constructor(
                     )
                     startLineDrawing()
                 }
+                invalidate()
             }
         }
         return true
