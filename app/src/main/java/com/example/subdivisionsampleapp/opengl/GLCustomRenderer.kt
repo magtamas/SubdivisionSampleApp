@@ -2,6 +2,7 @@ package com.example.subdivisionsampleapp.opengl
 
 import android.opengl.GLSurfaceView
 import android.opengl.GLU
+import com.example.subdivisionsampleapp.opengl.gl_model.GLCube
 import com.example.subdivisionsampleapp.opengl.gl_model.GLTriangle
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
@@ -9,6 +10,7 @@ import javax.microedition.khronos.opengles.GL10
 class GLCustomRenderer: GLSurfaceView.Renderer {
 
     private var triangle: GLTriangle = GLTriangle()
+    private var cube: GLCube = GLCube()
 
     override fun onSurfaceCreated(gl: GL10?, config: EGLConfig?) {
         gl?.apply {
@@ -36,9 +38,11 @@ class GLCustomRenderer: GLSurfaceView.Renderer {
             glClear(GL10.GL_COLOR_BUFFER_BIT or GL10.GL_DEPTH_BUFFER_BIT)
             glMatrixMode(GL10.GL_MODELVIEW)
             glLoadIdentity()
+
+            //CAMERA LOOK AT
             GLU.gluLookAt(gl, 0f,0f,-5f,0f,0f,0f,0f,2f,0f)
 
-            triangle.draw(gl)
+            cube.draw(gl)
         }
     }
 }
