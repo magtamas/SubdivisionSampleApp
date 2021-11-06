@@ -43,13 +43,13 @@ class GLCustomRenderer: GLSurfaceView.Renderer {
             //CAMERA LOOK AT
             GLU.gluLookAt(gl, 0f,0f,-5f,0f,0f,0f,0f,2f,0f)
 
-            val time = SystemClock.uptimeMillis() % 4000L
+            /*val time = SystemClock.uptimeMillis() % 4000L
             val angle = 0.090f * time.toInt()
 
             glRotatef(angle, 1f, 0f, 0f)
-            glRotatef(angle, 0f, 0f, 1f)
+            glRotatef(angle, 0f, 0f, 1f)*/
 
-            cube.draw(gl)
+            triangle.draw(gl)
         }
     }
 }
