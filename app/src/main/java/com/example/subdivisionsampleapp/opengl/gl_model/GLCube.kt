@@ -56,7 +56,7 @@ class GLCube() {
             glEnable(GL10.GL_CULL_FACE)
             glCullFace(GL10.GL_BACK)
             glEnableClientState(GL10.GL_VERTEX_ARRAY)
-            glVertexPointer(2, GL10.GL_FLOAT, 0, vertBuffer)
+            glVertexPointer(3, GL10.GL_FLOAT, 0, vertBuffer)
             glDrawElements(GL10.GL_TRIANGLES, pointIndex.size, GL10.GL_UNSIGNED_SHORT, pointBuffer)
             glDisableClientState(GL10.GL_VERTEX_ARRAY)
             glDisable(GL10.GL_CULL_FACE)

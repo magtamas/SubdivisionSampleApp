@@ -2,6 +2,7 @@ package com.example.subdivisionsampleapp.opengl
 
 import android.opengl.GLSurfaceView
 import android.opengl.GLU
+import android.os.SystemClock
 import com.example.subdivisionsampleapp.opengl.gl_model.GLCube
 import com.example.subdivisionsampleapp.opengl.gl_model.GLTriangle
 import javax.microedition.khronos.egl.EGLConfig
@@ -41,6 +42,12 @@ class GLCustomRenderer: GLSurfaceView.Renderer {
 
             //CAMERA LOOK AT
             GLU.gluLookAt(gl, 0f,0f,-5f,0f,0f,0f,0f,2f,0f)
+
+            val time = SystemClock.uptimeMillis() % 4000L
+            val angle = 0.090f * time.toInt()
+
+            glRotatef(angle, 1f, 0f, 0f)
+            glRotatef(angle, 0f, 0f, 1f)
 
             cube.draw(gl)
         }
