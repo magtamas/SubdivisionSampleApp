@@ -28,6 +28,14 @@ class SurfaceActivity : AppCompatActivity(), RotationGestureDetector.OnRotationG
         val height = displayMetrics.heightPixels
         val width = displayMetrics.widthPixels
 
+        binding.startButton.setOnClickListener {
+            renderer.startRotate()
+        }
+
+        binding.restartButton.setOnClickListener {
+            renderer.startSubdivision()
+        }
+
         Log.d("tag","LOGMAG WIDTH: " + width)
         Log.d("tag","LOGMAG HEIGHT: " + height)
     }

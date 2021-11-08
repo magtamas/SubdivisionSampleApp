@@ -66,12 +66,10 @@ class RotationGestureDetector(private val mListener: OnRotationGestureListener?)
             if (Math.abs(diffX) > Math.abs(diffY)) {
                 if (Math.abs(diffX) > SWIPE_THRESHOLD) {
                     if (diffX > 0) {
-                        Log.d("tag","LOGMAG SWIPE RIGHT")
                         angle = (nsX - sX) / 2
                         axis = Axis.X
                         //onSwipeRight()
                     } else {
-                        Log.d("tag","LOGMAG SWIPE LEFT")
                         angle = (nsX - sX) / 2
                         axis = Axis.X
                         //onSwipeLeft()
@@ -79,11 +77,9 @@ class RotationGestureDetector(private val mListener: OnRotationGestureListener?)
                 }
             } else if (Math.abs(diffY) > SWIPE_THRESHOLD) {
                 if (diffY > 0) {
-                    Log.d("tag","LOGMAG SWIPE BOTTOM")
                     angle = (nsY - sY) / 2
                     axis = Axis.Y
                 } else {
-                    Log.d("tag","LOGMAG SWIPE TOP")
                     angle = (nsY - sY) / 2
                     axis = Axis.Y
                     //onSwipeTop()

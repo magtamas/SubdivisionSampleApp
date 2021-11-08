@@ -6,6 +6,7 @@ import android.os.SystemClock
 import com.example.subdivisionsampleapp.opengl.gl_model.GLCube
 import com.example.subdivisionsampleapp.opengl.gl_model.GLPyramid
 import com.example.subdivisionsampleapp.opengl.gl_model.GLTriangle
+import com.example.subdivisionsampleapp.opengl.gl_utils.VertexHolder
 import javax.microedition.khronos.egl.EGLConfig
 import javax.microedition.khronos.opengles.GL10
 
@@ -56,6 +57,8 @@ class GLCustomRenderer: GLSurfaceView.Renderer {
     private var yAngle: Float = 0f
     var axis: Axis = Axis.X
 
+    private var currentAngle = 0f
+    private var needRotate = true
     override fun onDrawFrame(gl: GL10?) {
         gl?.apply {
             glDisable(GL10.GL_DITHER)
@@ -74,12 +77,39 @@ class GLCustomRenderer: GLSurfaceView.Renderer {
             //glRotatef(20f,1f,0f,0f)
 
 
-            //glRotatef(yAngle, 1f, 0f, 0f)
-            //glRotatef(xAngle, 0f, 1f, 0f)
-            glRotatef(angle, 1f, 0f, 0f)
+            glRotatef(yAngle, 1f, 0f, 0f)
+            glRotatef(xAngle, 0f, 1f, 0f)
+            /*if(needRotate) {
+                currentAngle = angle
+                glRotatef(angle, 1f, 1f, 0f)
+            } else {
+                glRotatef(currentAngle, 1f, 1f, 0f)
+            }*/
 
-            cube.draw(gl)
+            if(needRotate) {
+                cube.draw(gl)
+            } else {
+                pyramid.draw(gl)
+            }
         }
+    }
+
+    fun startSubdivision() {
+        /*if(needRotate) {
+            cube.startSubdivision()
+        } else {
+            pyramid.startSubdivision()
+        }*/
+        cube.startSubdivision()
+    }
+
+    fun startRotate() {
+        if(needRotate) {
+            pyramid = GLPyramid()
+        } else {
+            cube = GLCube()
+        }
+        needRotate = !needRotate
     }
 
     fun rotate(angle: Float, axis: Axis) {
