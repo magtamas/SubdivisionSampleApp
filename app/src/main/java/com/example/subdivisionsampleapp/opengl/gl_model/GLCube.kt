@@ -314,6 +314,9 @@ class GLCube() {
             }
             if(neighborhoodList.isNotEmpty()) {
                 triangleList[firstIndex].setNeighborhoodList(neighborhoodList)
+                if(firstIndex == 8) {
+                    Log.d("tag","LOGMAG NEIGHBORHOODS: " + neighborhoodList)
+                }
             }
         }
     }

@@ -95,12 +95,11 @@ class GLCustomRenderer: GLSurfaceView.Renderer {
     }
 
     fun startSubdivision() {
-        /*if(needRotate) {
+        if(needRotate) {
             cube.startSubdivision()
         } else {
             pyramid.startSubdivision()
-        }*/
-        cube.startSubdivision()
+        }
     }
 
     fun startRotate() {
