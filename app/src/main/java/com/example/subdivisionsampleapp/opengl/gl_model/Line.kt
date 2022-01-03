@@ -13,9 +13,11 @@ data class Line(
         other as Line
 
         if((firstVertexIndex == other.firstVertexIndex
-            && secondVertexIndex == other.secondVertexIndex)
+                    && secondVertexIndex == other.secondVertexIndex)
             || (firstVertexIndex == other.secondVertexIndex
-            && secondVertexIndex == other.firstVertexIndex)
+                    && secondVertexIndex == other.firstVertexIndex)
+            || (secondVertexIndex == other.firstVertexIndex
+                    && firstVertexIndex == other.secondVertexIndex)
         ) {
             return true
         }

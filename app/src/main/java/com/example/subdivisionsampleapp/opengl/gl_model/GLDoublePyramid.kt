@@ -2,15 +2,18 @@ package com.example.subdivisionsampleapp.opengl.gl_model
 
 import android.util.Log
 import com.example.subdivisionsampleapp.opengl.gl_utils.LineUtils
+import com.example.subdivisionsampleapp.opengl.gl_utils.VertexHolder
 import com.example.subdivisionsampleapp.opengl.gl_utils.toBuffer
 import com.google.gson.Gson
 import java.lang.Exception
+import java.lang.IllegalArgumentException
+import java.lang.IllegalStateException
 import java.lang.StringBuilder
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 import javax.microedition.khronos.opengles.GL10
 
-class GLPyramid() {
+class GLDoublePyramid() {
 
     private val colorValues: FloatArray = floatArrayOf(
         1f, 1f, 1f, 0f, //point0 color
@@ -23,12 +26,13 @@ class GLPyramid() {
         1f, 1f, 1f, 0f, //point7 color
     )
 
-    private val vertices = mutableListOf<Float>(
+    private var vertices = mutableListOf<Float>(
         1f, -1f, -1f,
         -1f, -1f, -1f,
         0f, 1f, 0f,
         1f, -1f, 1f,
         -1f, -1f, 1f,
+        0f, -3f, 0f,
     )
 
     private var triangleList = mutableListOf<Triangle>(
@@ -37,8 +41,12 @@ class GLPyramid() {
         Triangle(4,2,1),
         Triangle(3,2,4),
 
-        Triangle(0,3,4),
-        Triangle(4,1,0)
+        Triangle(3,5,0),
+        Triangle(0,5,1),
+        Triangle(1,5,4),
+        Triangle(4,5,3),
+        /*Triangle(0,3,4),
+        Triangle(4,1,0)*/
     )
     private var linePointIndex: ShortArray = shortArrayOf(
         0,3,
@@ -107,12 +115,31 @@ class GLPyramid() {
         linePointIndex = testList.toShortArray()
         linePointBuffer = linePointIndex.toBuffer()
         var testList2 = mutableListOf<Float>()
-        for(triangle in triangleList) {
+        val test2 = floatArrayOf(0f, 1f, 0f, 0f)
+
+        for((index, triangle) in triangleList.withIndex()) {
             val test = floatArrayOf(1f, 0f, 0f, 0f)
             test.forEach {
                 testList2.add(it)
             }
         }
+
+        for((index, triangle) in triangleList.withIndex()) {
+            if(index == 4) {
+                testList2[triangle.firstVertexIndex * 4] = test2[0]
+                testList2[triangle.firstVertexIndex * 4 + 1] = test2[1]
+                testList2[triangle.firstVertexIndex * 4 + 2] = test2[2]
+
+                testList2[triangle.secondVertexIndex * 4] = test2[0]
+                testList2[triangle.secondVertexIndex * 4 + 1] = test2[1]
+                testList2[triangle.secondVertexIndex * 4 + 2] = test2[2]
+
+                testList2[triangle.thirdVertexIndex * 4] = test2[0]
+                testList2[triangle.thirdVertexIndex * 4 + 1] = test2[1]
+                testList2[triangle.thirdVertexIndex * 4 + 2] = test2[2]
+            }
+        }
+
         lineColorValues = testList2.toFloatArray()
         lineColorBuffer = lineColorValues.toBuffer()
     }
@@ -121,7 +148,8 @@ class GLPyramid() {
         val VERTICES_LIST_SIZE = vertices.size / 3
         val doneLineList = mutableListOf<Line>()
 
-        for(currentTriangle in triangleList) {
+        for((index, currentTriangle) in triangleList.withIndex()) {
+
             for(currentLine in currentTriangle.provideLineList()) {
 
                 if(doneLineList.contains(currentLine)) {
@@ -146,7 +174,6 @@ class GLPyramid() {
                         it.secondVertexIndex
                     )
                 } ?: listOf()
-
 
                 val indexOf1per8Edges = mutableListOf<Int>()
                 for(triangleByLine in trianglesByLine) {
@@ -210,6 +237,7 @@ class GLPyramid() {
                     z = newZ,
                     parentLine = currentLine
                 )
+
                 vertices.add(newX)
                 vertices.add(newY)
                 vertices.add(newZ)
@@ -222,6 +250,7 @@ class GLPyramid() {
 
         val processedPoints = mutableListOf<Point>()
         val newTriangles = mutableListOf<Triangle>()
+        Log.d("tag","LOGMAG NEW POINTS: " + newPointList.size)
         for(currentNewPoint in newPointList) {
             processedPoints.add(currentNewPoint)
 
@@ -236,12 +265,6 @@ class GLPyramid() {
                             && !processedPoints.contains(it)
                 }
 
-                newPointList.forEach {
-                    if(triangle.provideLineList().contains(it.parentLine)) {
-                        (newPointList.indexOf(it) + 8)
-                    }
-                }
-
                 val newVertexIndexList = mutableListOf<Int>()
                 newPointsInCurrentTriangle.forEach {
                     newVertexIndexList.add(newPointList.indexOf(it) + VERTICES_LIST_SIZE)
@@ -252,17 +275,11 @@ class GLPyramid() {
                     newVertexIndexList[0],
                     newVertexIndexList[1]
                 )
-
                 if(!newTriangles.contains(newTriangle)) {
                     newTriangles.add(newTriangle)
                 }
 
                 for(point in newPointsInCurrentTriangle) {
-
-                    if(point == currentNewPoint) {
-                        continue
-                    }
-
                     newTriangle = Triangle(
                         firstVertexIndex = newPointList.indexOf(currentNewPoint) + VERTICES_LIST_SIZE,
                         secondVertexIndex = newPointList.indexOf(point) + VERTICES_LIST_SIZE,
@@ -279,19 +296,10 @@ class GLPyramid() {
             processedPoints.clear()
         }
 
-        /*for(point in newPointList) {
-            vertices.add(point.x)
-            vertices.add(point.y)
-            vertices.add(point.z)
-        }*/
-
         triangleList.clear()
+        triangleList.addAll(newTriangles)
 
-        for(triangle in newTriangles) {
-            triangleList.add(triangle)
-        }
-
-        val sb = StringBuilder()
+        /*val sb = StringBuilder()
         var counter = 0
         for(vertex in vertices) {
             when(counter) {
@@ -308,12 +316,12 @@ class GLPyramid() {
                     counter = 0
                 }
             }
-        }
-        Log.d("tag","LOGMAG VERTEX JSON: " + sb.toString())
-        Log.d("tag","LOGMAG VERTEX --------------")
+        }*/
+        /*Log.d("tag","LOGMAG VERTEX JSON: " + sb.toString())
+        Log.d("tag","LOGMAG VERTEX --------------")*/
 
 
-        val first = triangleList.map { it.firstVertexIndex }
+        /*val first = triangleList.map { it.firstVertexIndex }
         val second = triangleList.map { it.secondVertexIndex }
         val third = triangleList.map { it.thirdVertexIndex }
 
@@ -326,9 +334,9 @@ class GLPyramid() {
             stringBuilder.append(" ")
             stringBuilder.append(third[index]+1)
             stringBuilder.append("\n")
-        }
-        Log.d("tag","LOGMAG TRIANGLE JSON: " + stringBuilder.toString())
-        Log.d("tag","LOGMAG TRIANGLE --------------")
+        }*/
+        /*Log.d("tag","LOGMAG TRIANGLE JSON: " + stringBuilder.toString())
+        Log.d("tag","LOGMAG TRIANGLE --------------")*/
 
         vertBuffer = vertices.toFloatArray().toBuffer()
         pointBuffer = getPointIndexShortArray().toBuffer()
@@ -341,6 +349,7 @@ class GLPyramid() {
     private fun generateNeighborhoods() {
         for(firstIndex in triangleList.indices) {
             val neighborhoodList = mutableListOf<Pair<Triangle, Line>>()
+
             for(secondIndex in triangleList.indices) {
                 if(firstIndex == secondIndex) {
                     continue
@@ -348,13 +357,11 @@ class GLPyramid() {
                 triangleList[firstIndex].provideLineList().intersect(
                     triangleList[secondIndex].provideLineList()
                 ).let { commonLines ->
-                    commonLines.isNotEmpty().let { isNotEmpty ->
-                        if (isNotEmpty) {
-                            if(neighborhoodList.find { it.second == commonLines.first()} == null) {
-                                neighborhoodList.add(
-                                    triangleList[secondIndex] to commonLines.first()
-                                )
-                            }
+                    if(commonLines.isNotEmpty()) {
+                        if(neighborhoodList.find { it.second == commonLines.first()} == null) {
+                            neighborhoodList.add(
+                                triangleList[secondIndex] to commonLines.first()
+                            )
                         }
                     }
                 }
@@ -371,7 +378,6 @@ class GLPyramid() {
             glEnable(GL10.GL_CULL_FACE)
             glCullFace(GL10.GL_BACK)
 
-
             try {
                 glEnableClientState(GL10.GL_VERTEX_ARRAY)
                 //glEnableClientState(GL10.GL_COLOR_ARRAY)
@@ -380,7 +386,9 @@ class GLPyramid() {
                 glDrawElements(GL10.GL_TRIANGLES, triangleList.size * 3, GL10.GL_UNSIGNED_SHORT, pointBuffer)
                 //glDisableClientState(GL10.GL_COLOR_ARRAY)
                 glDisableClientState(GL10.GL_VERTEX_ARRAY)
-            } catch (ex: Exception) { }
+            } catch (ex: Exception) {
+
+            }
 
             /*glEnableClientState(GL10.GL_VERTEX_ARRAY)
             glEnableClientState(GL10.GL_COLOR_ARRAY)

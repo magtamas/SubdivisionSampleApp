@@ -1,6 +1,9 @@
 package com.example.subdivisionsampleapp.activity
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore.ACTION_IMAGE_CAPTURE
 import android.util.DisplayMetrics
 import android.util.Log
 import android.view.MotionEvent

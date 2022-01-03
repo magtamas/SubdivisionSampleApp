@@ -4,7 +4,9 @@ import android.util.Log
 import com.example.subdivisionsampleapp.opengl.gl_utils.LineUtils
 import com.example.subdivisionsampleapp.opengl.gl_utils.VertexHolder
 import com.example.subdivisionsampleapp.opengl.gl_utils.toBuffer
+import com.google.gson.Gson
 import java.lang.Exception
+import java.lang.StringBuilder
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 import javax.microedition.khronos.opengles.GL10
@@ -126,9 +128,7 @@ class GLCube() {
 
     fun startSubdivision() {
         val VERTICES_LIST_SIZE = vertices.size / 3
-        Log.d("tag","LOGMAG VERTICES_LIST_SIZE: " + VERTICES_LIST_SIZE)
         val doneLineList = mutableListOf<Line>()
-
 
         for(currentTriangle in triangleList) {
             for(currentLine in currentTriangle.provideLineList()) {
@@ -137,9 +137,15 @@ class GLCube() {
                     continue
                 }
 
-                val trianglesByLine = triangleList.filter {
-                    it.provideLineList().contains(currentLine)
-                }
+                val trianglesByLine = currentTriangle.getNeighborhoodList()
+                    .find {
+                        it.second == currentLine
+                    }?.first!!.let {
+                        listOf(
+                            currentTriangle,
+                            it
+                        )
+                    }
 
                 val indexOf1per2Edges = trianglesByLine[0].provideLineList().find {
                     it == currentLine
@@ -192,19 +198,19 @@ class GLCube() {
                 var newZ = 0f
 
                 indexOf1per2Edges.forEach {
-                    newX += vertices[it * 3] * 1/2
-                    newY += vertices[it * 3 + 1] * 1/2
-                    newZ += vertices[it * 3 + 2] * 1/2
+                    newX += vertices[it * 3] * 1f/2f
+                    newY += vertices[it * 3 + 1] * 1f/2f
+                    newZ += vertices[it * 3 + 2] * 1f/2f
                 }
                 indexOf1per8Edges.forEach {
-                    newX += vertices[it * 3] * 1/8
-                    newY += vertices[it * 3 + 1] * 1/8
-                    newZ += vertices[it * 3 + 2] * 1/8
+                    newX += vertices[it * 3] * 1f/8f
+                    newY += vertices[it * 3 + 1] * 1f/8f
+                    newZ += vertices[it * 3 + 2] * 1f/8f
                 }
                 indexOfMinus1per16Edges.forEach {
-                    newX += vertices[it * 3] * -1/16
-                    newY += vertices[it * 3 + 1] * -1/16
-                    newZ += vertices[it * 3 + 2] * -1/16
+                    newX += vertices[it * 3] * -1f/16f
+                    newY += vertices[it * 3 + 1] * -1f/16f
+                    newZ += vertices[it * 3 + 2] * -1f/16f
                 }
 
                 val newPoint = Point(
@@ -251,34 +257,31 @@ class GLCube() {
                     newVertexIndexList.add(newPointList.indexOf(it) + VERTICES_LIST_SIZE)
                 }
 
-                newTriangles.add(
-                    Triangle(
-                        newPointList.indexOf(currentNewPoint) + VERTICES_LIST_SIZE,
-                        newVertexIndexList[0],
-                        newVertexIndexList[1]
-                    )
+                var newTriangle = Triangle(
+                    newPointList.indexOf(currentNewPoint) + VERTICES_LIST_SIZE,
+                    newVertexIndexList[0],
+                    newVertexIndexList[1]
                 )
+                if(!newTriangles.contains(newTriangle)) {
+                    newTriangles.add(newTriangle)
+                }
+
                 for(point in newPointsInCurrentTriangle) {
-                    newTriangles.add(
-                        Triangle(
-                            firstVertexIndex = newPointList.indexOf(currentNewPoint) + VERTICES_LIST_SIZE,
-                            secondVertexIndex = newPointList.indexOf(point) + VERTICES_LIST_SIZE,
-                            thirdVertexIndex = LineUtils.getCommonPointIndex(
-                                currentNewPoint.parentLine,
-                                point.parentLine
-                            )
+                    newTriangle = Triangle(
+                        firstVertexIndex = newPointList.indexOf(currentNewPoint) + VERTICES_LIST_SIZE,
+                        secondVertexIndex = newPointList.indexOf(point) + VERTICES_LIST_SIZE,
+                        thirdVertexIndex = LineUtils.getCommonPointIndex(
+                            currentNewPoint.parentLine,
+                            point.parentLine
                         )
                     )
+                    if(!newTriangles.contains(newTriangle)) {
+                        newTriangles.add(newTriangle)
+                    }
                 }
             }
             processedPoints.clear()
         }
-
-        /*for(point in newPointList) {
-            vertices.add(point.x)
-            vertices.add(point.y)
-            vertices.add(point.z)
-        }*/
 
         triangleList.clear()
 
@@ -286,16 +289,57 @@ class GLCube() {
             triangleList.add(triangle)
         }
 
+        val sb = StringBuilder()
+        var counter = 0
+        for(vertex in vertices) {
+            when(counter) {
+                0 -> {
+                    sb.append("v " + vertex)
+                    counter++
+                }
+                1 -> {
+                    sb.append(" " + vertex)
+                    counter++
+                }
+                2 -> {
+                    sb.append(" " + vertex + "\n")
+                    counter = 0
+                }
+            }
+        }
+        Log.d("tag","LOGMAG VERTEX JSON: " + sb.toString())
+        Log.d("tag","LOGMAG VERTEX --------------")
+
+
+        val first = triangleList.map { it.firstVertexIndex }
+        val second = triangleList.map { it.secondVertexIndex }
+        val third = triangleList.map { it.thirdVertexIndex }
+
+        val stringBuilder = StringBuilder()
+        for(index in 0 until triangleList.size) {
+            stringBuilder.append("f ")
+            stringBuilder.append(first[index]+1)
+            stringBuilder.append(" ")
+            stringBuilder.append(second[index]+1)
+            stringBuilder.append(" ")
+            stringBuilder.append(third[index]+1)
+            stringBuilder.append("\n")
+        }
+        Log.d("tag","LOGMAG TRIANGLE JSON: " + stringBuilder.toString())
+        Log.d("tag","LOGMAG TRIANGLE --------------")
+
         vertBuffer = vertices.toFloatArray().toBuffer()
         pointBuffer = getPointIndexShortArray().toBuffer()
         calculateLines()
         generateNeighborhoods()
+
         newPointList.clear()
     }
 
     private fun generateNeighborhoods() {
         for(firstIndex in triangleList.indices) {
             val neighborhoodList = mutableListOf<Pair<Triangle, Line>>()
+
             for(secondIndex in triangleList.indices) {
                 if(firstIndex == secondIndex) {
                     continue
@@ -303,8 +347,8 @@ class GLCube() {
                 triangleList[firstIndex].provideLineList().intersect(
                     triangleList[secondIndex].provideLineList()
                 ).let { commonLines ->
-                    commonLines.isNotEmpty().let { isNotEmpty ->
-                        if (isNotEmpty) {
+                    if(commonLines.isNotEmpty()) {
+                        if(neighborhoodList.find { it.second == commonLines.first()} == null) {
                             neighborhoodList.add(
                                 triangleList[secondIndex] to commonLines.first()
                             )
@@ -314,9 +358,6 @@ class GLCube() {
             }
             if(neighborhoodList.isNotEmpty()) {
                 triangleList[firstIndex].setNeighborhoodList(neighborhoodList)
-                if(firstIndex == 8) {
-                    Log.d("tag","LOGMAG NEIGHBORHOODS: " + neighborhoodList)
-                }
             }
         }
     }
@@ -326,7 +367,6 @@ class GLCube() {
             glFrontFace(GL10.GL_CW)
             glEnable(GL10.GL_CULL_FACE)
             glCullFace(GL10.GL_BACK)
-
 
             try {
                 glEnableClientState(GL10.GL_VERTEX_ARRAY)

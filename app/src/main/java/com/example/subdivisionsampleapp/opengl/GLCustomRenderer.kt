@@ -4,6 +4,7 @@ import android.opengl.GLSurfaceView
 import android.opengl.GLU
 import android.os.SystemClock
 import com.example.subdivisionsampleapp.opengl.gl_model.GLCube
+import com.example.subdivisionsampleapp.opengl.gl_model.GLDoublePyramid
 import com.example.subdivisionsampleapp.opengl.gl_model.GLPyramid
 import com.example.subdivisionsampleapp.opengl.gl_model.GLTriangle
 import com.example.subdivisionsampleapp.opengl.gl_utils.VertexHolder
@@ -15,6 +16,7 @@ class GLCustomRenderer: GLSurfaceView.Renderer {
     private var triangle: GLTriangle = GLTriangle()
     private var cube: GLCube = GLCube()
     private var pyramid: GLPyramid = GLPyramid()
+    private var doublePyramid: GLDoublePyramid = GLDoublePyramid()
 
     private val lightDiffuse = floatArrayOf(0.75f, 0.75f, 0.75f, 1f)
     private val lightPosition = floatArrayOf(-5f, -5f, 0f)

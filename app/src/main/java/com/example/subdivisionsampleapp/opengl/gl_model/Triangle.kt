@@ -35,9 +35,23 @@ data class Triangle(
 
         other as Triangle
 
-        if (firstVertexIndex != other.firstVertexIndex) return false
+        /*if (firstVertexIndex != other.firstVertexIndex) return false
         if (secondVertexIndex != other.secondVertexIndex) return false
-        if (thirdVertexIndex != other.thirdVertexIndex) return false
+        if (thirdVertexIndex != other.thirdVertexIndex) return false*/
+
+        val indexList = listOf(
+            firstVertexIndex,
+            secondVertexIndex,
+            thirdVertexIndex
+        ).sorted()
+
+        val otherIndexList = listOf(
+            other.firstVertexIndex,
+            other.secondVertexIndex,
+            other.thirdVertexIndex
+        ).sorted()
+
+        if(indexList != otherIndexList) return false
 
         return true
     }
